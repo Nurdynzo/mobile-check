@@ -1,0 +1,70 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+platform :android do
+  desc 'Build and upload Android APK to Play store'
+  lane :deploy_to_play_store do |options|
+    increment_version_code
+    #clean the build and create an .aab android build
+    gradle(task: "clean", project_dir: "android")
+    gradle(
+          task: "bundle", 
+          build_type: "Release", 
+          project_dir: "android", 
+          properties: {
+            "android.injected.signing.store.file" => ENV['ANDROID_KEYSTORE_FILE'],
+            "android.injected.signing.store.password" => ENV['ANDROID_KEYSTORE_PASSWORD'],
+            "android.injected.signing.key.alias" => ENV['ANDROID_KEYSTORE_ALIAS'],
+            "android.injected.signing.key.password" => ENV['ANDROID_KEYSTORE_PASSWORD']
+        })
+    # send app to play store 
+   upload_to_play_store(
+      track: ENV['RELEASE_TRACK'],
+      aab: File.absolute_path('../android/app/build/outputs/bundle/release/app-release.aab'),
+    )
+  end
+
+    desc "Build and upload Android APK to Firebase"
+        package = load_json(json_path: "./package.json")            
+        lane :build_and_upload_apk do
+            latest_release = firebase_app_distribution_get_latest_release(
+                  app: ENV['FIREBASE_APP_ID'],
+                  firebase_cli_token: ENV['FIREBASE_CLI_TOKEN']
+              )
+        next_build_number = latest_release[:buildVersion].to_i + 1 
+        increment_version_code(
+                gradle_file_path: "./android/app/build.gradle",
+                version_code: next_build_number
+                )
+        increment_version_name(
+                gradle_file_path: "./android/app/build.gradle",
+                version_name: ENV['APK_VERSION_NAME']
+                )
+      gradle(task: "clean", project_dir: "./android")
+      gradle(
+        task: "assemble", 
+        build_type: "Release", 
+        project_dir: "./android")
+
+        release = firebase_app_distribution(
+        app: ENV['FIREBASE_APP_ID'],
+        firebase_cli_token: ENV['FIREBASE_CLI_TOKEN'],
+        release_notes: ENV['RELEASE_NOTES'],
+        groups: ENV['TESTERS_GROUP'],
+        android_artifact_type: "APK",
+        android_artifact_path: "android/app/build/outputs/apk/release/app-release.apk")
+  end
+end

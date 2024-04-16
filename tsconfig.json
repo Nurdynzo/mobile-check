@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "baseUrl": ".",
+    "types": ["jest", "node"],
+    "paths": {
+      "@/assets/*": ["src/assets/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/navigation/*": ["src/navigation/*"],
+      "@/resources/*": ["src/resources/*"],
+      "@/screens/*": ["src/screens/*"],
+      "@/state/*": ["src/state/*"],
+      "@/types/*": ["src/types/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/constants/*": ["src/constants/*"]
+    }
+  },
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "exclude": ["node_modules", "*.config.js", "*.eslintrc.js"]
+}

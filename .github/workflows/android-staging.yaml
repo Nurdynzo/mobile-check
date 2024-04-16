@@ -1,0 +1,136 @@
+name: "Manual Staging APK Build"
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to'
+        # required: true
+        type: choice
+        default: 'Firebase App Distribution'
+        options:
+          - 'Firebase App Distribution'
+          - 'Google Play Store Internal'
+          - 'Google Play Store Production'   
+      releaseNotes:
+        description: 'Release Notes'
+        required: false
+      versionNamePrefix:
+        description: 'Version Name Prefix'
+        required: false
+        default: 'Staging Build APK'
+        type: string
+      versionCode:
+        description: 'Build Number'
+        required: false
+        default: ''
+        type: string      
+
+
+jobs:
+   uploadApkFirebase:
+    name: Firebase Distribution
+    runs-on: ubuntu-latest
+    if: inputs.publish == 'Firebase App Distribution'
+    steps:
+      - name: Checkout      
+        uses: actions/checkout@v3       
+      - name: Setup 
+        uses: ./.github/workflows/actions/setup
+      - name: Tag Apk
+        id: apk-name
+        env:
+          VERSION_NAME: ${{ inputs.versionNamePrefix }}
+          VERSION_CODE: ${{ inputs.versionCode }}  
+          ENV_VARS: ${{ secrets.STAGING_ENV }} 
+          GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_STORE_ACCOUNT }} 
+        run: |
+          echo "$ENV_VARS">.env
+          APK_NAME=$(echo $VERSION_CODE-$VERSION_NAME)
+          echo "::set-output name=name::$APK_NAME"        
+      - name: Run Fastlane Deployment
+        run: fastlane build_and_upload_apk
+        env:
+         APK_VERSION_NAME: ${{ steps.apk-name.outputs.name }}
+         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+         FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+         RELEASE_NOTES: ${{ inputs.releaseNotes }}
+         TESTERS_GROUP: ${{ secrets.GENERAL_GROUP }}
+      - name: Send Slack Notification
+        id: send-notification
+        uses: ./.github/workflows/actions/notification/successfulDeploy  
+        with:
+          slack: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+   uploadApkGooglePlayInternal:
+    name: GooglePlay Internal
+    runs-on: ubuntu-latest
+    if: inputs.publish == 'Google Play Store Internal'
+    steps:
+      - name: Checkout      
+        uses: actions/checkout@v3       
+      - name: Setup 
+        uses: ./.github/workflows/actions/setup
+      - name: Environment Variable
+        env:
+          ENV_VARS: ${{ secrets.STAGING_ENV }} 
+          GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_STORE_ACCOUNT }} 
+        run: |
+          echo "$ENV_VARS">.env
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT">plateaumed_service_account.json       
+      - name: Run Fastlane Deployment
+        run: fastlane deploy_to_play_store
+        env:
+         ANDROID_KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_FILE }}
+         ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+         ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+         RELEASE_TRACK: internal
+      - name: Send Slack Notification
+        id: send-notification
+        uses: ./.github/workflows/actions/notification/successfulDeploy  
+        with:
+          slack: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+   uploadApkGooglePlayProduction:
+    name: GooglePlay Production
+    runs-on: ubuntu-latest
+    if: inputs.publish == 'Google Play Store Production'
+    steps:
+      - name: Checkout      
+        uses: actions/checkout@v3       
+      - name: Setup 
+        uses: ./.github/workflows/actions/setup
+      - name: Environment Variable
+        env:
+          ENV_VARS: ${{ secrets.STAGING_ENV }} 
+          GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_STORE_ACCOUNT }} 
+        run: |
+          echo "$ENV_VARS">.env
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT">plateaumed_service_account.json       
+      - name: Run Fastlane Deployment
+        run: fastlane deploy_to_play_store
+        env:
+         ANDROID_KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE_FILE }}
+         ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+         ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+         RELEASE_TRACK: production
+      - name: Send Slack Notification
+        id: send-notification
+        uses: ./.github/workflows/actions/notification/successfulDeploy  
+        with:
+          slack: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+   run-if-failed:
+    runs-on: ubuntu-latest
+    needs: [uploadApkFirebase, uploadApkGooglePlayInternal, uploadApkGooglePlayProduction]
+    if: always() && ( needs.uploadApkFirebase.result == 'failure' || needs.uploadApkGooglePlayInternal.result == 'failure' || needs.uploadApkGooglePlayProduction.result == 'failure')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Send slack message on scan failure
+        uses: ./.github/workflows/actions/notification/scanFailure
+        with:
+          uploadApkFirebase: ${{ needs.uploadApkFirebase.result }}
+          uploadApkGooglePlayInternal: ${{ needs.uploadApkGooglePlayInternal.result }}
+          uploadApkGooglePlayProduction: ${{ needs.uploadApkGooglePlayProduction.result }}
+          slack: ${{ secrets.SLACK_WEBHOOK_URL }}           

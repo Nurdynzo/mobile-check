@@ -1,0 +1,28 @@
+name: Run Mobile Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup
+        uses: ./.github/workflows/actions/setup
+      - name: Download ENV
+        env:
+          ENV_VAR: ${{ secrets.STAGING_ENV }}
+        run: |
+          echo "$ENV_VAR">.env
+      - name: Run Jest
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          yarn jest
+      - name: Run Lint
+        run: |
+          yarn lint

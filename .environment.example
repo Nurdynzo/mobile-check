@@ -1,0 +1,3 @@
+TENANT_NAME=myhospitaltenant
+API_BASE_URL=https://api.domain.com
+APP_HOST_URL=app.domain.com

@@ -1,0 +1,57 @@
+name: "Manual Test APK Build"
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to'
+        required: true
+        type: choice
+        default: 'Firebase App Distribution'
+        options:
+          - 'Firebase App Distribution'    
+      releaseNotes:
+        description: 'Release Notes'
+        required: false
+      versionNamePrefix:
+        description: 'Version Name Prefix'
+        required: false
+        default: 'Test Build APK'
+        type: string
+      versionCode:
+        description: 'Build Number'
+        required: false
+        default: ''
+        type: string
+
+
+jobs:
+   buildUatApk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup
+        uses: ./.github/workflows/actions/setup
+
+      - name: Tag Apk
+        id: apk-name
+        env:
+          VERSION_NAME: ${{ inputs.versionNamePrefix }}
+          VERSION_CODE: ${{ inputs.versionCode }}  
+          ENV_VARS: ${{ secrets.DEV_ENV }} 
+        run: |
+          echo "$ENV_VARS">.env
+          APK_NAME=$(echo $VERSION_CODE-$VERSION_NAME)
+          echo "::set-output name=name::$APK_NAME" 
+
+      - name: Run Fastlane Deployment
+        run: fastlane build_and_upload_apk
+        env:
+         APK_VERSION_NAME: ${{ steps.apk-name.outputs.name }}
+         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+         FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+         RELEASE_NOTES: ${{ inputs.releaseNotes }}
+         TESTERS_GROUP: ${{ secrets.QA_GROUP }}

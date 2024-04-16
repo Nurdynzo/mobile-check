@@ -1,0 +1,50 @@
+name: 'Scan Failure Notification'
+description: 'Scan failure notification via Slack'
+
+inputs:
+  actor:
+    description: 'Actor'
+    default: ${{ github.actor }}
+  branch:
+    description: 'Branch name'
+    default: ${{ github.base_ref || github.ref_name }}
+  repo:
+    description: 'repository name'
+    default: ${{ github.event.repository.name }}
+  uploadApkFirebase:
+    description: 'Firebase result'
+    required: true
+  uploadApkGooglePlayInternal:
+    description: 'Google Play Internal result'
+    required: true
+  uploadApkGooglePlayProduction:
+    description: 'Google Play Production result'
+    required: true
+  slack:
+    description: 'Slack Webhook'
+    default: "https://hooks.slack.com/services/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"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send slack message on failure
+      id: send-notification
+      shell: bash
+      run: |
+        FIREBASE=$(echo ${{ inputs.uploadApkFirebase }})
+        INTERNAL=$(echo ${{ inputs.uploadApkGooglePlayInternal }})
+        PRODUCTION=$(echo ${{ inputs.uploadApkGooglePlayProduction }})
+
+
+        output=" "
+        if [[ $FIREBASE == "failure" ]];
+        then
+          output=$(echo "Firebase Stage")
+        elif [[ $INTERNAL == "failure" ]];
+        then
+          output=$(echo "Google Play Internal Stage")
+        elif [[ $PRODUCTION == "failure" ]];
+        then
+          output=$(echo "Google Play Production Stage")
+        fi
+        curl -X POST -H 'Content-type: application/json'  --data '{  "username": "Server",  "attachments": [ { "color": "danger", "fields": [{"title" : "Service Deployment Alert", "value": "The deployment triggered by  '"${{ inputs.actor }}"' from '"${{ inputs.branch }}"' branch of '"${{ inputs.repo }}"' service has failed at the '"$output"' ", "short": "false" }]} ]}' '${{ inputs.slack }}'

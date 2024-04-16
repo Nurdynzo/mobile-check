@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "donjayamanne.git-extension-pack",
+    "ziyasal.vscode-open-in-github",
+    "pkief.material-icon-theme",
+    "codezombiech.gitignore",
+    "eamodio.gitlens"
+  ]
+}
