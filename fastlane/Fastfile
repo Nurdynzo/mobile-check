@@ -22,7 +22,6 @@ platform :android do
       package_name: "com.plateaumed", # e.g com.example.yourapp
       google_play_json_key_path: "./plateaumed_service_account.json", # path to JSON key for authenticating with Google Play Android Developer API
     ).to_s
-    increment_version_code
     #clean the build and create an .aab android build
     gradle(task: "clean", project_dir: "android")
     gradle(
