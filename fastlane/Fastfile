@@ -28,6 +28,7 @@ platform :android do
           build_type: "Release", 
           project_dir: "android", 
           properties: {
+            "android.injected.version.code" => build_number,
             "android.injected.signing.store.file" => ENV['ANDROID_KEYSTORE_FILE'],
             "android.injected.signing.store.password" => ENV['ANDROID_KEYSTORE_PASSWORD'],
             "android.injected.signing.key.alias" => ENV['ANDROID_KEYSTORE_ALIAS'],
