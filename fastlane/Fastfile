@@ -20,7 +20,8 @@ platform :android do
     build_number = get_new_build_number(
         package_name: "com.plateaumed", 
         google_play_json_key_path: "./plateaumed_service_account.json",
-        ).to_s
+        )
+    increment_build_number(build_number: build_number)
     #clean the build and create an .aab android build
     gradle(task: "clean", project_dir: "android")
     gradle(
