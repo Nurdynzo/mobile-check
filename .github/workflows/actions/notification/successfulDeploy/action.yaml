@@ -13,7 +13,7 @@ inputs:
     default: ${{ github.event.repository.name }}
   slack:
     description: 'slack webhook'
-    default: ${{ github.event.repository.name }}
+    required: true
 
 runs:
   using: 'composite'
@@ -35,4 +35,4 @@ runs:
         then
          color=$(echo "#00cf29")
         fi
-        curl -X POST -H 'Content-type: application/json'  --data '{  "username": "Server",  "attachments": [ { "color": "'"$color"'", "fields": [{"title" : "Service Deployment Alert", "value": "The deployment triggered by '"${{ inputs.actor }}"' from '"${{ inputs.branch }}"' branch of '"${{ inputs.repo }}"' service has completed successfully ", "short": "false" }]} ]}' '${{ inputs.slack }}'
+        curl -X POST -H 'Content-type: application/json'  --data '{  "username": "Server",  "attachments": [ { "color": "'"$color"'", "fields": [{"title" : "Service Deployment Alert", "value": "The deployment triggered by '"${{ inputs.actor }}"' from '"${{ inputs.branch }}"' branch of '"${{ inputs.repo }}"' service has completed successfully ", "short": "false" }]} ]}' ${{ inputs.slack }}
