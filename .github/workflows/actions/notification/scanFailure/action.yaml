@@ -47,4 +47,4 @@ runs:
         then
           output=$(echo "Google Play Production Stage")
         fi
-        curl -X POST -H 'Content-type: application/json'  --data '{  "username": "Server",  "attachments": [ { "color": "danger", "fields": [{"title" : "Service Deployment Alert", "value": "The deployment triggered by  '"${{ inputs.actor }}"' from '"${{ inputs.branch }}"' branch of '"${{ inputs.repo }}"' service has failed at the '"$output"' ", "short": "false" }]} ]}' '${{ inputs.slack }}'
+        curl -X POST -H 'Content-type: application/json'  --data '{  "username": "Server",  "attachments": [ { "color": "danger", "fields": [{"title" : "Service Deployment Alert", "value": "The deployment triggered by  '"${{ inputs.actor }}"' from '"${{ inputs.branch }}"' branch of '"${{ inputs.repo }}"' service has failed at the '"$output"' ", "short": "false" }]} ]}' ${{ inputs.slack }}
