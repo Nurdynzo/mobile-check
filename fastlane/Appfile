@@ -1,2 +1,2 @@
-json_key_file("../plateaumed_service_account.json")
+json_key_file("../mobile-check/plateaumed_service_account.json")
 package_name("com.plateaumed")
