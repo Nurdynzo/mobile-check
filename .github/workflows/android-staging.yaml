@@ -133,4 +133,4 @@ jobs:
           uploadApkFirebase: ${{ needs.uploadApkFirebase.result }}
           uploadApkGooglePlayInternal: ${{ needs.uploadApkGooglePlayInternal.result }}
           uploadApkGooglePlayProduction: ${{ needs.uploadApkGooglePlayProduction.result }}
-          slack: https://hooks.slack.com/services/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         
+          slack: ${{ secrets.SLACK_WEBHOOK_URL }}       
