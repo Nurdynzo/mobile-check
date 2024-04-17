@@ -17,11 +17,11 @@ default_platform(:android)
 platform :android do
   desc 'Build and upload Android APK to Play store'
   lane :deploy_to_play_store do |options|
-    productionVersionCodes = google_play_track_version_codes(
+    production = google_play_track_version_codes(
         package_name: "com.plateaumed", 
         json_key: "./plateaumed_service_account.json",
       )
-    internalVersionCodes = google_play_track_version_codes(
+    internal = google_play_track_version_codes(
         track: "internal",
         package_name: "com.plateaumed", 
         json_key: "./plateaumed_service_account.json",
@@ -33,7 +33,7 @@ platform :android do
           build_type: "Release", 
           project_dir: "android", 
           properties: {
-            "android.injected.version.code" => ENV['VERSION_CODES'],
+            "android.injected.version.code" => ENV['RELEASE_TRACK'],
             "android.injected.signing.store.file" => ENV['ANDROID_KEYSTORE_FILE'],
             "android.injected.signing.store.password" => ENV['ANDROID_KEYSTORE_PASSWORD'],
             "android.injected.signing.key.alias" => ENV['ANDROID_KEYSTORE_ALIAS'],
