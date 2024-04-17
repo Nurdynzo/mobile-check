@@ -18,7 +18,6 @@ platform :android do
   desc 'Build and upload Android APK to Play store'
   lane :deploy_to_play_store do |options|
     build_number = get_new_build_number(
-        bundle_identifier: "com.plateaumed",
         package_name: "com.plateaumed", 
         google_play_json_key_path: "./plateaumed_service_account.json",
     ).to_s
