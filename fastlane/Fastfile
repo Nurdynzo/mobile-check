@@ -16,16 +16,12 @@
 default_platform(:android)
 platform :android do
   desc 'Build and upload Android APK to Play store'
-  package = load_json(json_path: "./package.json") 
   lane :deploy_to_play_store do |options|
     build_number = get_new_build_number(
+        bundle_identifier: "com.plateaumed",
         package_name: "com.plateaumed", 
         google_play_json_key_path: "./plateaumed_service_account.json",
-    ).to_s + 1 
-    increment_version_code(
-         gradle_file_path: "./android/app/build.gradle",
-         version_code: build_number
-        )
+    ).to_s
     #clean the build and create an .aab android build
     gradle(task: "clean", project_dir: "android")
     gradle(
