@@ -17,15 +17,18 @@ default_platform(:android)
 platform :android do
   desc 'Build and upload Android APK to Play store'
   lane :deploy_to_play_store do |options|
-    production = google_play_track_version_codes(
-        package_name: "com.plateaumed", 
-        json_key: "./plateaumed_service_account.json",
-      )
-    internal = google_play_track_version_codes(
-        track: "internal",
-        package_name: "com.plateaumed", 
-        json_key: "./plateaumed_service_account.json",
-     )
+    previous_build_number = google_play_track_version_codes(
+      track: "internal",
+      package_name: "com.plateaumed", 
+      json_key: "./plateaumed_service_account.json",
+    )[0]
+
+    current_build_number = previous_build_number + 1
+
+    increment_version_code(
+      gradle_file_path: "./android/app/build.gradle",
+      version_code: current_build_number
+    )
     #clean the build and create an .aab android build
     gradle(task: "clean", project_dir: "android")
     gradle(
@@ -33,7 +36,6 @@ platform :android do
           build_type: "Release", 
           project_dir: "android", 
           properties: {
-            "android.injected.version.code" => "15",
             "android.injected.signing.store.file" => ENV['ANDROID_KEYSTORE_FILE'],
             "android.injected.signing.store.password" => ENV['ANDROID_KEYSTORE_PASSWORD'],
             "android.injected.signing.key.alias" => ENV['ANDROID_KEYSTORE_ALIAS'],
