@@ -18,7 +18,7 @@ platform :android do
   desc 'Build and upload Android APK to Play store'
   lane :deploy_to_play_store do |options|
     previous_build_number = google_play_track_version_codes(
-      track: "internal",
+      track: ENV['RELEASE_TRACK'],
       package_name: "com.plateaumed", 
       json_key: "./plateaumed_service_account.json",
     )[0]
