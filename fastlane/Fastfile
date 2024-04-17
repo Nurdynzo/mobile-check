@@ -17,7 +17,9 @@ default_platform(:android)
 platform :android do
   desc 'Build and upload Android APK to Play store'
   lane :deploy_to_play_store do |options|
-    build_number = get_new_build_number
+    build_number = get_new_build_number(
+          package_name: "com.plateaumed"
+    )
     #clean the build and create an .aab android build
     gradle(task: "clean", project_dir: "android")
     gradle(
